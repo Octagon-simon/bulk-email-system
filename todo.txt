@@ -1,0 +1,27 @@
+Request for email account and verify if domain matches the email account provided //env file
+
+//send_mail
+
+//select a mailing list and a template then click on send...This will store an ID, list path and template path to database and cron will do the Request
+
+//database table
+
+to_send
+
+===cols
+
+id, list_path, temp_path, total_emails, date_created, send_interval (5s max), time_started, is_completed
+
+has_sent
+
+==bes_id, total_sent, total_left, time_completed
+
+templates
+id, name, description, file_name, date_created
+
+mailing_list
+id, name, file_name, date_created
+
+////optional features
+
+support for placeholders
