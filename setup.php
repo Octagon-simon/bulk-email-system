@@ -4,14 +4,14 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require('core/functions.php');
 $status = [];
 $an = null;
-if(isset($_SESSION['bes_user']) && !empty($_SESSION['bes_user'])){
+if(isset($_SESSION['bes_user']) && !empty($_SESSION['bes_user']) && (time() < intval($_SESSION['bes_user']))){
     header("Location: index.php");
     exit();
 }
 
 if(isset($_SESSION['an']) && !empty($_SESSION['an'])){
     $an = $_SESSION['an'];
-}elseif($_SERVER['REQUEST_METHOD'] == 'GET' && !empty($_GET['an'])){
+}elseif(isset($_GET) && !empty($_GET['an'])){
     $an = base64_decode(htmlspecialchars($_GET['an']));
     //check value of $an
     if($an == "reg"){
@@ -35,7 +35,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
             's' => password_hash($_POST['pass'], PASSWORD_BCRYPT)
         ]);
         //create session
-        $_SESSION['bes_user'] = time();
+        $_SESSION['bes_user'] = strtotime("+7 hours",time());
         //set status
         $status = [
             "success" => true,
@@ -45,7 +45,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
         $user = $db->SelectOne("SELECT * FROM user LIMIT 1", []);
         if($user['username'] == $_POST['uname'] && password_verify($_POST['pass'], $user['secret'])){
             //create session
-            $_SESSION['bes_user'] = time();
+            $_SESSION['bes_user'] = strtotime("+7 hours",time());
             //set status
             $status = [
                 "success" => true,
@@ -60,7 +60,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
         }
     }
 }
-
 
 ?>
 
@@ -101,11 +100,11 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
             <?php if($an === "reg") : ?>
                 <form method="post" id="form_reg">
                     <div class="mb-2">
-                        <label>Username</label>
+                        <label>Username <span class="text-danger">*</span></label>
                         <input octavalidate="R,USERNAME" id="inp_uname" name="uname" class="form-control" value="">
                     </div>
                     <div class="mb-2">
-                        <label>Password</label>
+                        <label>Password <span class="text-danger">*</span></label>
                         <input type="password" octavalidate="R,PWD" id="inp_pass" name="pass" class="form-control" value="">
                     </div>
                     <div class="">
@@ -114,7 +113,9 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                 </form>
                 <script>
                     $('#form_reg').on('submit', (e) => {
-                        const mf = new octaValidate("form_reg");
+                        const mf = new octaValidate("form_reg", {
+                            strictMode : true
+                        });
                         if(mf.validate()){
                             e.currentTarget.submit();
                         }else{
@@ -125,11 +126,11 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
             <?php elseif($an === "log") : ?>
                 <form method="post" id="form_log">
                     <div class="mb-2">
-                        <label>Username</label>
+                        <label>Username <span class="text-danger">*</span></label>
                         <input octavalidate="R,USERNAME" id="inp_uname" name="uname" class="form-control" value="">
                     </div>
                     <div class="mb-2">
-                        <label>Password</label>
+                        <label>Password <span class="text-danger">*</span></label>
                         <input type="password" octavalidate="R,PWD" id="inp_pass" name="pass" class="form-control" value="">
                     </div>
                     <div class="">

@@ -1,19 +1,13 @@
 <?php
 
 declare(strict_types=1);
-//require JWT autoload
-require_once('JWT/vendor/autoload.php');
-//Use it
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 require 'env.php';
 //import database class
 require 'class_db.php';
 //import mail file
 require 'mail.php';
-//import octavalidate
-require 'octaValidate-PHP/src/Validate.php';
+
 //instantiate class
 $db = new DatabaseClass();
 
@@ -67,34 +61,6 @@ function cors()
         exit(0);
     }
 }
-//this function generates a JWT for a user
-function doJWT($user_data)
-{
-    $secretKey = JWT_SECRET_KEY;
-    $issuedAt = new DateTimeImmutable();
-    $expire = $issuedAt->modify('+24 hours')->getTimestamp(); //expire after 1 day     
-    $serverName = BACKEND_URL; // Retrieved from filtered POST data
-
-    $data = [
-        'iat' => $issuedAt->getTimestamp(),
-        // Issued at: time when the token was generated
-        'iss' => $serverName,
-        // Issuer
-        'nbf' => $issuedAt->getTimestamp(),
-        // Not before
-        'exp' => $expire // Expire
-
-    ];
-    $res = array_merge($data, $user_data);
-
-    return (
-        JWT::encode(
-            $res,
-            $secretKey,
-            'HS512'
-        )
-    );
-}
 function doError(int $status = 400, $error)
 {
     //Easily print out errors to the user
@@ -132,72 +98,6 @@ function verifyToken(string $Token)
             return $user_id;
         }
     }
-}
-
-function verifyJWT()
-{
-    try {
-        if (isset($_SERVER['HTTP_AUTHORIZATION']) && !empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            $jwt_token = $_SERVER['HTTP_AUTHORIZATION'];
-            //make sure you are using https or have set http_authorization in htaccess
-            if (!preg_match('/Bearer\s(\S+)/', $jwt_token, $matches)) {
-                //token not found in request
-                doReturn(401, false, ["message" => "Please re-login to your account"]);
-            }
-            $jwt = $matches[1];
-            if (!$jwt) {
-                // No token was able to be extracted from the authorization header
-                doReturn(401, false, ["message" => "Please re-login to your account"]);
-            }
-            //From stackoverflow
-            //https://stackoverflow.com/questions/72278051/why-is-jwtdecode-returning-status-kid-empty-unable-to-lookup-corr
-            $token = JWT::decode($jwt, new Key(JWT_SECRET_KEY, 'HS512'));
-            $now = new DateTimeImmutable();
-            $serverName = BACKEND_URL;
-            //verify the token
-            if (
-                $token->iss !== $serverName ||
-                $token->nbf > $now->getTimestamp() ||
-                $token->exp < $now->getTimestamp()
-            ) {
-                //token is now invalid
-                doReturn(401, false, ["message" => "Please re-login to your account"]);
-            }
-
-            //else return userid
-            return $token->uid;
-        } else {
-            doReturn(401, false, ["message" => "Please re-login to your account"]);
-        }
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        doReturn(401, false, ["message" => "Please re-login to your account"]);
-    }
-}
-
-function checkUpdatedProfile($data)
-{
-    if (!is_array($data) || !count($data))
-        return;
-    $extData = ['fname', 'lname', 'phone'];
-    $suc = true;
-    //loop through extra data
-    foreach ($extData as $e) {
-        if (!isset($data[$e]) || empty($data[$e])) {
-            $suc = false;
-        }
-    }
-
-    return $suc;
-}
-
-//returns true or false whether or not license is active
-function activeLicense($time)
-{
-    //$time must be a unix timestamp
-    if (time() > intval($time))
-        return false;
-    return true;
 }
 
 //handle dynamic email
