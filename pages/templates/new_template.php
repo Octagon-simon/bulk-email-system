@@ -1,6 +1,6 @@
 <?php
 //import functions file
-require('../core/functions.php');
+require('../../core/functions.php');
 $status = [];
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
@@ -18,7 +18,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     //store in db
     if(empty($status)){
         //move the template file
-        $moveTo = "../uploads/templates/".$_FILES['temp_file']['name'];
+        $moveTo = "../../uploads/templates/".$_FILES['temp_file']['name'];
         if(move_uploaded_file($_FILES['temp_file']['tmp_name'], $moveTo)){
             $db->Insert("INSERT INTO templates (temp_name, temp_desc, temp_file, date_created) VALUES (:n, :d, :f, :dt)", [
                 'n' => $_POST['temp_name'],
@@ -45,13 +45,13 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 
 <head>
     <title>Create a New Email Template</title>
-    <?php include('../includes/head.php'); ?>
+    <?php include('../../includes/head.php'); ?>
 </head>
 
 <body>
     <section>
         <div class="container">
-            <?php include('../includes/alert.php'); ?>
+            <?php include('../../includes/alert.php'); ?>
             <form method="post" id="form_new_temp" enctype="multipart/form-data">
             <div class="mb-2">
                     <label>Select File <span class="text-danger">*</span></label>
