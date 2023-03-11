@@ -16,7 +16,7 @@ if(!isset($_SESSION['bes_user']) || empty($_SESSION['bes_user'])){
 }
 
 if(isset($_SESSION['bes_user']) && !empty($_SESSION['bes_user']) && (time() > intval($_SESSION['bes_user']))){
-    header("Location:setup.php?an=".base64_encode("log"));
+    header("Location:".ORIGIN."setup.php?an=".base64_encode("log"));
     exit();
 }
 
