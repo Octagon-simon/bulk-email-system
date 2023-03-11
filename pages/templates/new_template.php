@@ -60,6 +60,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                 <div class="mb-2">
                     <label>Name <span class="text-danger">*</span></label>
                     <input octavalidate="R,USERNAME" id="inp_name" name="temp_name" class="form-control" placeholder="Pricing Template...">
+                    <small>Name should be the subject of the Email</small>
                 </div>
                 <div class="mb-3">
                     <label>Description <span class="text-danger">*</span></label>

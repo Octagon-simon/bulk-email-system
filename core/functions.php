@@ -149,4 +149,17 @@ function checkAccount(){
     
     return true;
 }
+//https://stackoverflow.com/questions/33865113/extract-email-address-from-string-php/33865191#33865191
+function extract_emails_from($string){
+    preg_match_all( '/([\w+\.]*\w+@[\w+\.]*\w+[\w+\-\w+]*\.\w+)/is', $string, $matches );
+    // var_dump($matches);
+    return $matches[0];
+}
+
+//check if string is a valid email and then return it
+function checkIfStringIsEmail($str){
+    if(filter_var($str, FILTER_VALIDATE_EMAIL)){
+        return $str;
+    }
+}
 ?>

@@ -4,7 +4,7 @@ require('../../core/app.php');
 $status = [];
 
 //get all templates
-$data = $db->SelectAll("SELECT *, scripts.id AS script_id FROM scripts INNER JOIN templates INNER JOIN lists ON lists.id = scripts.list_id AND templates.id = scripts.temp_id ORDER BY scripts.date_created ASC", []);
+$data = $db->SelectAll("SELECT *, scripts.id AS script_id FROM scripts INNER JOIN templates INNER JOIN lists INNER JOIN progress ON progress.track_id = scripts.track_id AND lists.id = scripts.list_id AND templates.id = scripts.temp_id ORDER BY scripts.date_created ASC", []);
 
 //handle script
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -17,11 +17,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $exists = false;
         $temp_file = "";
         $key = 0;
+        $already_running = false;
+        $track_id = "";
         //check if template exists
         foreach ($data as $dt => $da) {
-            if ($da['script_id'] = $script_id) {
+            if ($da['script_id'] == $script_id) {
                 $exists = true;
                 $key = $dt;
+                $track_id = $da['track_id'];
+            }
+
+            if($da['has_started'] == "Yes"){
+                $already_running = true;
             }
         }
 
@@ -33,6 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             ];
         }
 
+        if(!empty($already_running)){
+            $status = [
+                "success" => false,
+                "msg" => "A script is already running. Please wait for it to complete"
+            ];
+        }
+
         if (empty($status)) {
             $tstarted = time();
             $db->Update("UPDATE scripts SET has_started = :h, time_started = :t WHERE id = :i", [
@@ -40,6 +54,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 't' => $tstarted,
                 'i' => $script_id
             ]);
+
+            //check if progress exists 
+            $progress = $db->SelectOne("SELECT * FROM progress WHERE track_id = :t", [
+                't' => $track_id
+            ]);
+
+            if(empty($progress)){
+                //create record
+                $db->Insert("INSERT INTO progress (track_id) VALUES (:t)", [
+                    't' => $track_id
+                ]);
+            }
 
             $status = [
                 "success" => true,
@@ -168,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <td>
                             <?php print($a['temp_name']); ?>
                         </td>
-                        <td>
+                        <td class="text-center">
                             <?php if ($a['has_started'] == "Yes"): ?>
                             <span class="badge bg-warning">Running</span>
                             <?php elseif ($a['has_started'] == "No"): ?>
@@ -184,14 +210,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                     <input type="hidden" name="script_id" value="<?php print($a['script_id']); ?>">
                                     <button class="btn btn-danger">Stop</button>
                                 </form>
-                            <button class="btn btn-info btn-view-script" data-sentemails="" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
+                            <button class="btn btn-info btn-view-script" data-sentemails="<?php print($a['total_sent']); ?>" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
                             <?php elseif ($a['has_started'] == "No"): ?>
                             <button data-scriptid="<?php print($a['script_id']); ?>"
                                 data-freq="<?php print($a['frequency']); ?>"
                                 data-emails="<?php print($a['total_emails']); ?>"
                                 class="btn btn-success btn-start-script">Start</button>
                             <?php else: ?>
-                            <button class="btn btn-info btn-view-script" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
+                            <button class="btn btn-info btn-view-script" data-sentemails="<?php print($a['total_sent']); ?>" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
                             <?php endif; ?>
                         </td>
                         <td class="text-center">
