@@ -27,3 +27,15 @@ id, name, file_name, date_created
 support for placeholders 
 
 range does not remove error
+
+/usr/bin/pgrep -f /home/tailorsk/public_html/clients/cron/test.php || /usr/local/bin/php /home/tailorsk/public_html/clients/cron/test.php
+
+/usr/bin/pgrep -f /home/tailorsk/public_html/clients/cron/test.php || /usr/bin/php /home/tailorsk/public_html/clients/cron/test.php
+
+//sample
+
+* * * * * /usr/bin/pgrep -f /path/to/cron.sh > /dev/null 2> /dev/null || /path/to/cron.sh
+
+//working one
+
+/usr/bin/pgrep /home/tailorsk/public_html/clients/cron/test.php || /usr/bin/php /home/tailorsk/public_html/clients/cron/test.php

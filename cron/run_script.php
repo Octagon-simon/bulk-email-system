@@ -2,11 +2,14 @@
 
 /**
  * Please close this file and go back if you don't know what to do here!
+ * 
  * This cron job runs the scripts created by the user
+ * 
+ * Run the cron script and ignore if the script is already running.. Script runs every minute
+ * 
+ *    ***** /usr/bin/pgrep path_to_script.php || /usr/bin/php path_to_script.php
+ * 
  **/
-
- //handle max execution time...
- //make sure email addresses are unique
 
 require('../core/functions.php');
 
@@ -16,51 +19,63 @@ $script = $db->SelectOne("SELECT *, scripts.id AS script_id FROM scripts INNER J
 ]);
 
 if (!empty($script)) {
-    //templates
+    //template
     $template = (file_exists("../uploads/templates/" . $script['temp_file'])) ? file_get_contents("../uploads/templates/" . $script['temp_file']) : null;
-    //lists
-    $list = (file_exists("../uploads/lists/" . $script['list_file'])) ? array_map('str_getcsv', file("../uploads/lists/" . $script['list_file'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) : null;
+    //list
+    $theCSV = (file_exists("../uploads/lists/" . $script['list_file'])) ? array_map('str_getcsv', file("../uploads/lists/" . $script['list_file'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES)) : null;
 
     //proceed if both files exist
-    if (!empty($template) && !empty($list)) {
-        //get emails
+    if (!empty($template) && !empty($theCSV)) {
         //also do names (next update)
-        $emails = [];
-        $interval = intval($script['frequency']);
+        $interval = intval($script['scr_interval']);
         $completed = false;
-        foreach ($list as $ll => $tt) {
-            $list_res = array_map('checkIfStringIsEmail', $tt);
-            //loop through results from the list
-            foreach ($list_res as $lll => $sss) {
-                if (filter_var($sss, FILTER_VALIDATE_EMAIL)) {
-                    //update progress
-                    $db->Update("UPDATE progress SET total_sent = :s, total_left = :l, current_email = :e WHERE track_id = :t", [
-                        's' => (intval($script['total_sent'])) ?  intval($script['total_sent']) + 1 : 1,
-                        'l' => (intval($script['total_emails'])) ?  intval($script['total_emails']) - intval($script['total_sent']) : intval($script['total_emails']),
-                        'e' => $sss,
-                        't' => $script['track_id']
-                    ]);
-                    // $emails[] = $sss;
-                    // sendMail($sss['address'], '', $script['temp_name'], $template);
-                    // var_dump("sending to " . $sss . ' ' . $script['temp_name'] . ' ' . $template);
-                    //update completed
-                    $completed = true;
-                    //rest
-                    // sleep($interval);
+        //the email addresses
+        $emails = [];
+        //get each string from the csv file and store in array
+        foreach ($theCSV as $t => $v) {
+            //check if the string from the csv file is an email address and store
+            //email from list array
+            $eFLAry = array_unique(array_map('checkIfStringIsEmail', $v));
+            //loop through results from the emails array
+            foreach ($eFLAry as $ee => $ss) {
+                //check if element is a valid email then store it
+                if (filter_var($ss, FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = $ss;
                 }
             }
         }
-        //script is done
-        if ($completed) {
-            $db->Update("UPDATE scripts SET has_started = :h, is_completed = :c, time_completed = :t WHERE id = :i", [
-                'h' => "Done",
-                'c' => "Yes",
-                't' => time(),
-                'i' => $script['script_id']
-            ]);
+
+        //make the email array elements unique and then loop through
+        if (count($emails)) {
+            //make sure email addresses are unique
+            foreach (array_unique($emails) as $e) {
+                //update progress
+                $db->Update("UPDATE progress SET total_sent = :s, total_left = :l, current_email = :e WHERE track_id = :t", [
+                    's' => (intval($script['total_sent'])) ? intval($script['total_sent']) + 1 : 1,
+                    'l' => (intval($script['total_emails'])) ? intval($script['total_emails']) - intval($script['total_sent']) : intval($script['total_emails']),
+                    'e' => $e,
+                    't' => $script['track_id']
+                ]);
+                // sendMail($e, '', $script['temp_name'], $template);
+                //update completed
+                $completed = true;
+                //rest
+                //sleep($interval);
+                //reset counter -- max execution time...
+                set_time_limit(30);
+            }
+            //script is done
+            if ($completed) {
+                $db->Update("UPDATE scripts SET has_started = :h, is_completed = :c, time_completed = :t WHERE id = :i", [
+                    'h' => "Done",
+                    'c' => "Yes",
+                    't' => time(),
+                    'i' => $script['script_id']
+                ]);
+            }
         }
     }
 }
-
-
+//kill script
+exit();
 ?>

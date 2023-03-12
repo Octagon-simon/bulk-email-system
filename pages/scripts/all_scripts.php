@@ -18,15 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $temp_file = "";
         $key = 0;
         $already_running = false;
+        $already_completed = false;
         $track_id = "";
-        //check if template exists
+        //do some checks
         foreach ($data as $dt => $da) {
+            //a particular
             if ($da['script_id'] == $script_id) {
                 $exists = true;
                 $key = $dt;
                 $track_id = $da['track_id'];
+                //if script has completed
+                if($da['is_completed'] == "Yes"){
+                    $already_completed = true;
+                }
             }
-
+            //a script is already running
             if($da['has_started'] == "Yes"){
                 $already_running = true;
             }
@@ -46,7 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 "msg" => "A script is already running. Please wait for it to complete"
             ];
         }
-
+        //check if script is completed already
+        if(!empty($already_completed)){
+            $status = [
+                "success" => false,
+                "msg" => "You cannot restart a script that has already completed"
+            ];
+        }
         if (empty($status)) {
             $tstarted = time();
             $db->Update("UPDATE scripts SET has_started = :h, time_started = :t WHERE id = :i", [
@@ -55,21 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                 'i' => $script_id
             ]);
 
-            //check if progress exists 
-            $progress = $db->SelectOne("SELECT * FROM progress WHERE track_id = :t", [
-                't' => $track_id
-            ]);
-
-            if(empty($progress)){
-                //create record
-                $db->Insert("INSERT INTO progress (track_id) VALUES (:t)", [
-                    't' => $track_id
-                ]);
-            }
-
             $status = [
                 "success" => true,
-                "msg" => "The script has started successfully"
+                "msg" => "The script has started successfully. Please check back later to confirm the status."
             ];
 
             //update array
@@ -172,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <th>Tracking</th>
                         <th>List</th>
                         <th>Template</th>
-                        //start, stop, view progress
                         <th class="text-center">Status</th>
                         <th class="text-center">Action</th>
                         <th class="text-center">Date Created</th>
@@ -213,8 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             <button class="btn btn-info btn-view-script" data-sentemails="<?php print($a['total_sent']); ?>" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
                             <?php elseif ($a['has_started'] == "No"): ?>
                             <button data-scriptid="<?php print($a['script_id']); ?>"
-                                data-freq="<?php print($a['frequency']); ?>"
+                                data-interval="<?php print($a['scr_interval']); ?>"
                                 data-emails="<?php print($a['total_emails']); ?>"
+                                data-template="<?php print($a['temp_name']); ?>"
+                                data-eta="<?php print(intval($a['scr_interval']) * intval($a['total_emails'])); ?>"
                                 class="btn btn-success btn-start-script">Start</button>
                             <?php else: ?>
                             <button class="btn btn-info btn-view-script" data-sentemails="<?php print($a['total_sent']); ?>" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>
@@ -227,8 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                     <?php endforeach; ?>
                     <?php else: ?>
                     <tr>
-                        <td class="text-center" colspan="5">
-                            No schedules found
+                        <td class="text-center" colspan="7">
+                            No scripts found
                         </td>
                     </tr>
                     <?php endif; ?>
@@ -248,9 +249,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                         <input type="hidden" name="action" value="start_script" />
                         <input type="hidden" name="script_id" id="inp_script_id" value="">
                     </form>
-                    <p id="temp_desc" class="p-3" style="background-color: #ddd;">This script will send emails to <span
-                            id="total_emails" class="text-danger"></span> every <span id="freq"
-                            class="text-danger"></span> until it is completed</p>
+                    <p class="p-3" style="background-color: #ddd;">This script will send your template <span id="template" class="text-danger"></span> to <span
+                            id="total_emails" class="text-danger"></span> every <span id="interval"
+                            class="text-danger"></span> until it is completed.<br/><br/>
+                    <strong>Estimated time of completion is: <span class="text-danger" id="eta"></span></strong>    
+                        </p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -280,8 +283,10 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             //start script
             Array.from($('.btn-start-script')).forEach(e => {
                 $(e).on('click', () => {
-                    $('#total_emails').html(e.dataset['emails'] + " addresses")
-                    $('#freq').html(e.dataset['freq'] + " secs")
+                    $('#total_emails').html((Number(e.dataset['emails']) === 1) ? e.dataset['emails'] + " email address": e.dataset['emails'] + " email addresses")
+                    $('#interval').html((Number(e.dataset['interval']) === 1) ? e.dataset['interval'] + " sec" : e.dataset['interval'] + " secs")
+                    $('#eta').html((Number(e.dataset['eta']) === 1) ? e.dataset['eta'] + " sec" : e.dataset['eta'] + " secs")
+                    $('#template').html('('+e.dataset['template']+')')
                     $('#inp_script_id').val(e.dataset['scriptid'])
                     new bootstrap.Modal($("#modal_start_script")[0]).show()
                 })
@@ -290,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             Array.from($('.btn-view-script')).forEach(e => {
                 $(e).on('click', () => {
                     $('#time_started').html(e.dataset['timestarted'])
-                    $('#sent_emails').html(e.dataset['sentemails'] + " emails")
+                    $('#sent_emails').html((Number(e.dataset['sentemails']) === 1) ? e.dataset['sentemails'] + " email" : e.dataset['sentemails'] + " emails")
                     new bootstrap.Modal($("#modal_view_script")[0]).show()
                 })
             });

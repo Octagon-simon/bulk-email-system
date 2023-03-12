@@ -21,12 +21,27 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
         $moveTo = "../../uploads/lists/".$_FILES['list_file']['name'];
         //get csv data into an array and then count
         //https://stackoverflow.com/questions/9139202/how-to-parse-a-csv-file-using-php
-        $emails = array_map('str_getcsv', file($_FILES['list_file']['tmp_name'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+        $theCSV = array_map('str_getcsv', file($_FILES['list_file']['tmp_name'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+        //the email addresses
+        $emails = [];
+        //get each string from the csv file and store in array
+        foreach($theCSV as $t => $v){
+            //check if the string from the csv file is an email address and store
+            //email from list array
+            $eFLAry = array_unique(array_map('checkIfStringIsEmail', $v));
+            //loop through results from the emails array
+            foreach ($eFLAry as $ee => $ss) {
+                //check if array value is an email then store it
+                if (filter_var($ss, FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = $ss;
+                }
+            }
+        }
         if(move_uploaded_file($_FILES['list_file']['tmp_name'], $moveTo)){
             $db->Insert("INSERT INTO lists (list_name, list_file, total_emails, date_created) VALUES (:n, :f, :e, :dt)", [
                 'n' => $_POST['list_name'],
                 'f' => $_FILES['list_file']['name'],
-                'e' => count($emails),
+                'e' => count(array_unique($emails)),
                 'dt' => time()
             ]);
             $status = [
@@ -62,7 +77,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                 </div>
                 <div class="mb-2">
                     <label>Name <span class="text-danger">*</span></label>
-                    <input octavalidate="R,USERNAME" id="inp_name" name="list_name" class="form-control" placeholder="My new customers...">
+                    <input octavalidate="R,TEXT" id="inp_name" name="list_name" class="form-control" placeholder="My new customers...">
                 </div>
                 <div class="">
                     <button class="btn btn-primary">Upload List</button>

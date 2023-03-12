@@ -16,16 +16,29 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 
     //store in db
     if(empty($status)){
-        $db->Insert("INSERT INTO schedules (track_id, list_id, temp_id, frequency, date_created) VALUES (:t, :l, :s, :f, :dt)", [
-            't' => generateRandomString(7),
+        $track_id = generateRandomString(7);
+        //check if progress exists 
+        $progress = $db->SelectOne("SELECT * FROM progress WHERE track_id = :t", [
+            't' => $track_id
+        ]);
+
+        if(empty($progress)){
+            //create record
+            $db->Insert("INSERT INTO progress (track_id) VALUES (:t)", [
+                't' => $track_id
+            ]);
+        }
+
+        $db->Insert("INSERT INTO scripts (track_id, list_id, temp_id, scr_interval, date_created) VALUES (:t, :l, :s, :f, :dt)", [
+            't' => $track_id,
             'l' => $_POST['list_id'],
             's' => $_POST['temp_id'],
-            'f' => intval($_POST['frequency']),
+            'f' => (!(intval($_POST['interval']) > 5) && !(intval($_POST['interval']) < 1)) ? intval($_POST['interval']) : 2,
             'dt' => time()
         ]);
         $status = [
             "success" => true,
-            "msg" => "Schedule has been created successfully"
+            "msg" => "Script has been created successfully"
         ];
     }
 }
@@ -65,12 +78,12 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label>Enter Frequency <span class="text-danger">*</span></label>
-                    <input ov-range-msg="Frequency must be within the range of 1-5s" type="number" class="form-control" id="inp_fr" octavalidate="R,DIGITS" name="frequency">
-                    <small>Maximum frequency is 5 secs</small>
+                    <label>Enter Interval <span class="text-danger">*</span></label>
+                    <input ov-range-msg="Interval must be within the range of 1-5s" type="number" class="form-control" id="inp_fr" octavalidate="R,DIGITS" name="interval">
+                    <small>Maximum interval is 5 secs. The lower the interval, the lower the time of completion</small>
                 </div>
                 <div class="">
-                    <button class="btn btn-danger">Create Schedule</button>
+                    <button class="btn btn-danger">Create Script</button>
                 </div>
             </form>
             <script>

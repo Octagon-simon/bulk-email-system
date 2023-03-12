@@ -81,7 +81,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                 </div>
                 <div class="mb-2">
                     <label>Name <span class="text-danger">*</span></label>
-                    <input octavalidate="R,USERNAME" id="inp_name" name="temp_name" class="form-control" placeholder="Pricing Template..." value="<?php print($template['temp_name']); ?>">
+                    <input octavalidate="R,TEXT" id="inp_name" name="temp_name" class="form-control" placeholder="Pricing Template..." value="<?php print($template['temp_name']); ?>">
                 </div>
                 <div class="mb-3">
                     <label>Description <span class="text-danger">*</span></label>
