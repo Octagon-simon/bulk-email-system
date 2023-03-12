@@ -46,15 +46,16 @@ if (!empty($script)) {
                 }
             }
         }
-
         //make the email array elements unique and then loop through
         if (count($emails)) {
+            //total emails sent
+            $total_sent = 0;
             //make sure email addresses are unique
             foreach (array_unique($emails) as $e) {
                 //update progress
                 $db->Update("UPDATE progress SET total_sent = :s, total_left = :l, current_email = :e WHERE track_id = :t", [
-                    's' => (intval($script['total_sent'])) ? intval($script['total_sent']) + 1 : 1,
-                    'l' => (intval($script['total_emails'])) ? intval($script['total_emails']) - intval($script['total_sent']) : intval($script['total_emails']),
+                    's' => ++$total_sent,
+                    'l' => intval($script['total_emails']) - $total_sent,
                     'e' => $e,
                     't' => $script['track_id']
                 ]);
