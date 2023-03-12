@@ -39,3 +39,5 @@ range does not remove error
 //working one
 
 /usr/bin/pgrep /home/tailorsk/public_html/clients/cron/test.php || /usr/bin/php /home/tailorsk/public_html/clients/cron/test.php
+
+2%iu!VSVS^g#

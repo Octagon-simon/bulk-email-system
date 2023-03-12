@@ -3,7 +3,9 @@
 /**
  * Please close this file and go back if you don't know what to do here!
  * 
- * This cron job runs the scripts created by the user
+ * This cron job runs the scripts created by the user. 
+ * 
+ * Make sure to give the script a permission value of 744
  * 
  * Run the cron script and ignore if the script is already running.. Script runs every minute
  * 
@@ -56,11 +58,11 @@ if (!empty($script)) {
                     'e' => $e,
                     't' => $script['track_id']
                 ]);
-                // sendMail($e, '', $script['temp_name'], $template);
+                sendMail($e, '', $script['temp_name'], $template);
                 //update completed
                 $completed = true;
                 //rest
-                //sleep($interval);
+                sleep($interval);
                 //reset counter -- max execution time...
                 set_time_limit(30);
             }

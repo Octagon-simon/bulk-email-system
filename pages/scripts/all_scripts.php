@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 data-interval="<?php print($a['scr_interval']); ?>"
                                 data-emails="<?php print($a['total_emails']); ?>"
                                 data-template="<?php print($a['temp_name']); ?>"
-                                data-eta="<?php print(intval($a['scr_interval']) * intval($a['total_emails'])); ?>"
+                                data-eta="<?php print(intval($a['scr_interval']) * intval($a['total_emails']) * 60); ?>"
                                 class="btn btn-success btn-start-script">Start</button>
                             <?php else: ?>
                             <button class="btn btn-info btn-view-script" data-sentemails="<?php print($a['total_sent']); ?>" data-timestarted="<?php print(gmdate('D, M d Y', $a['time_started'])); ?>">View</button>

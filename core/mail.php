@@ -16,20 +16,20 @@ function sendMail($user_email, $user_name, $subject, $body)
         //Server settings
         //$mail->SMTPDebug = SMTP::DEBUG_SERVER; //Enable verbose debug output
         $mail->isSMTP(); //Send using SMTP
-        $mail->Host = 'mail.tailorskit.com'; //Set the SMTP server to send through
-        $mail->SMTPAuth = true; //Enable SMTP authentication
-        $mail->Username = 'support@tailorskit.com'; //SMTP username
-        $mail->Password = 'B}?i#~?[d-4i'; //SMTP password
+        $mail->Host = MAIL_HOST; //Set the SMTP server to send through
+        $mail->SMTPAuth = MAIL_SMTP_AUTH; //Enable SMTP authentication
+        $mail->Username = MAIL_UNAME; //SMTP username
+        $mail->Password = MAIL_PASS; //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; //Enable implicit TLS encryption
-        $mail->Port = 465; //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+        $mail->Port = MAIL_SMTP_PORT; //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
 
         //Recipients
-        $mail->setFrom('support@tailorskit.com', 'Tailors Kit');
+        $mail->setFrom(MAIL_UNAME, MAIL_SENDER);
         $mail->addAddress($user_email, $user_name); //Add a recipient
         // $mail->addAddress('ellen@example.com'); //Name is optional
         // $mail->addReplyTo('info@example.com', 'Information');
-        $mail->addCC('hello@tailorskit.com');
-        $mail->addBCC('ugorji757@gmail.com');
+        $mail->addCC(MAIL_CC);
+        $mail->addBCC(MAIL_BCC);
 
         //Attachments
         // $mail->addAttachment('/var/tmp/file.tar.gz'); //Add attachments
@@ -44,7 +44,7 @@ function sendMail($user_email, $user_name, $subject, $body)
         $mail->send();
         return 1;
     } catch (Exception $e) {
-        echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        echo "Message could not be sent to $user_email. Mailer Error: {$mail->ErrorInfo}";
         return 0;
     }
 }

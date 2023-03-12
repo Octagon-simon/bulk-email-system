@@ -5,3 +5,13 @@ DEFINE ('DB_USER', '');
 DEFINE ('DB_PASS', '');
 DEFINE ('DB_NAME', '');
 DEFINE ('ORIGIN', '');
+
+//CONFIGURE PHP MAILER
+DEFINE ('MAIL_HOST', '');
+DEFINE ('MAIL_SMTP_AUTH', true);
+DEFINE ('MAIL_SMTP_PORT', 465);
+DEFINE ('MAIL_UNAME', '');
+DEFINE ('MAIL_PASS', '');
+DEFINE ('MAIL_SENDER', '');
+DEFINE ('MAIL_CC', ''); //optional
+DEFINE ('MAIL_BCC', ''); //optional
