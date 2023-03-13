@@ -84,7 +84,7 @@ if (!empty($data)) {
                     <?php print($contacts); ?>
                   </div>
                   <!--total emails -->
-                  <div><?php ($contacts == 1) ? print("Contact") : "Contacts"; ?></div>
+                  <div><?php ($contacts == 1) ? print("Contact") : print("Contacts"); ?></div>
                 </div>
                 <div class="dropdown">
                   <button class="btn btn-transparent text-white p-0" type="button" data-coreui-toggle="dropdown"
@@ -112,7 +112,7 @@ if (!empty($data)) {
                   <div class="fs-4 fw-semibold">
                     <?php print($total_scripts['total']); ?>
                   </div>
-                  <div><?php ($total_scripts['total'] == 1) ? print("Script") : "Scripts"; ?></div>
+                  <div><?php ($total_scripts['total'] == 1) ? print("Script") : print("Scripts"); ?></div>
                 </div>
                 <div class="dropdown">
                   <button class="btn btn-transparent text-white p-0" type="button" data-coreui-toggle="dropdown"

@@ -1,3 +1,4 @@
 env*
 uploads/lists/*
 uploads/templates/*
+test/*
